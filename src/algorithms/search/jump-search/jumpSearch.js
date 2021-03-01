@@ -16,36 +16,31 @@ export default function jumpSearch(sortedArray, seekElement, comparatorCallback)
     // We can't find anything in empty array.
     return -1;
   }
+  // target is less than the smallest value in array
+  if (comparator.greaterThan(sortedArray[0], seekElement)) return -1;
+  // target is greater than largest value in array
+  if (comparator.lessThan(sortedArray[arraySize - 1], seekElement)) return -1;
 
-  // Calculate optimal jump size.
-  // Total number of comparisons in the worst case will be ((arraySize/jumpSize) + jumpSize - 1).
-  // The value of the function ((arraySize/jumpSize) + jumpSize - 1) will be minimum
-  // when jumpSize = √array.length.
-  const jumpSize = Math.floor(Math.sqrt(arraySize));
+  let targetIndex = -1;
+  let lowerBound = 0;
+  let upperBound = sortedArray[arraySize - 1];
+  const block = Math.floor(Math.sqrt(arraySize));
 
-  // Find the block where the seekElement belong to.
-  let blockStart = 0;
-  let blockEnd = jumpSize;
-  while (comparator.greaterThan(seekElement, sortedArray[Math.min(blockEnd, arraySize) - 1])) {
-    // Jump to the next block.
-    blockStart = blockEnd;
-    blockEnd += jumpSize;
-
-    // If our next block is out of array then we couldn't found the element.
-    if (blockStart > arraySize) {
-      return -1;
+  for (let i = block; i < arraySize; i += block) {
+    if (comparator.lessThan(sortedArray[i], seekElement)) {
+      lowerBound = i;
+    } else {
+      upperBound = i;
+      break;
     }
   }
 
-  // Do linear search for seekElement in subarray starting from blockStart.
-  let currentIndex = blockStart;
-  while (currentIndex < Math.min(blockEnd, arraySize)) {
-    if (comparator.equal(sortedArray[currentIndex], seekElement)) {
-      return currentIndex;
+  for (let i = lowerBound; i < upperBound + 1; i += 1) {
+    if (comparator.equal(sortedArray[i], seekElement)) {
+      targetIndex = i;
+      break;
     }
-
-    currentIndex += 1;
   }
 
-  return -1;
+  return targetIndex;
 }
